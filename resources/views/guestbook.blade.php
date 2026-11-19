@@ -1,75 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-framework="laravel">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Spectivis Cloud sample: Laravel</title>
-    <style>
-        body { font: 16px/1.5 system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
-        h1, h2 { text-wrap: balance; }
-        p { text-wrap: pretty; }
-        form { display: grid; gap: .75rem; margin-bottom: 2rem; }
-        input, textarea, button { font: inherit; padding: .5rem; }
-        ul { list-style: none; padding: 0; }
-        li { border-top: 1px solid #ddd; padding: .75rem 0; }
-        small { color: #555; }
-        img { max-width: 8rem; display: block; margin-top: .5rem; }
-        .error { color: #a00; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('starter.css') }}">
 </head>
 <body>
-    <h1>Guestbook</h1>
-    <p>This sample shows that the database, the queue worker, the scheduler and file uploads work on Spectivis Cloud.</p>
+<div class="page">
+    <header class="top">
+        <span class="host">{{ request()->getHost() }}</span>
+        <nav>
+            <a href="#guestbook">Guestbook</a>
+            <a class="outline" href="https://spectivis.com">Spectivis Cloud</a>
+        </nav>
+    </header>
 
-    <h2>Checks</h2>
-    <ul>
-        <li>Database: {{ $entries->count() }} {{ Str::plural('entry', $entries->count()) }} shown.</li>
-        <li>Queue: each new entry shows "processed" once the queue worker has handled it.</li>
-        <li>Scheduler: last heartbeat
-            @if ($heartbeat)
-                {{ \Illuminate\Support\Carbon::parse($heartbeat)->toDayDateTimeString() }} UTC.
-            @else
-                not recorded yet. It appears within a minute of the scheduler starting.
-            @endif
-        </li>
-        <li>Uploads: attach a photo to an entry. It is saved under <code>storage/app/public</code>.</li>
-        <li>Broadcasting:
-            @if ($reverb)
-                <span id="live">connecting to Reverb.</span> New entries turn "processed" on this page without a reload.
-            @else
-                off. Turn on Reverb in the environment's settings and redeploy to see entries turn "processed" without a reload.
-            @endif
-        </li>
-    </ul>
+    <main>
+        <section class="welcome">
+            <div class="welcome-copy">
+                <h1>Your starter Laravel app</h1>
+                <p class="intro">Hosted on Spectivis Cloud. This guestbook uses each part of the platform. Edit <code>resources/views/<wbr>guestbook.blade.php</code>, push, and the new version goes live.</p>
 
-    <h2>Sign the guestbook</h2>
-    <form method="post" action="{{ route('entries.store') }}" enctype="multipart/form-data">
-        @csrf
-        <label>Name <input name="name" value="{{ old('name') }}" required maxlength="80"></label>
-        <label>Message <textarea name="message" required maxlength="500">{{ old('message') }}</textarea></label>
-        <label>Photo (optional) <input type="file" name="photo" accept="image/*"></label>
-        @foreach ($errors->all() as $error)
-            <span class="error">{{ $error }}</span>
-        @endforeach
-        <button type="submit">Add entry</button>
-    </form>
+                <ul class="services">
+                    <li>
+                        <span class="name">Database</span>
+                        <span class="detail"><span class="state ok">Connected</span> &middot; {{ $entries->count() }} {{ Str::plural('entry', $entries->count()) }} shown</span>
+                    </li>
+                    <li>
+                        <span class="name">Queue</span>
+                        <span class="detail">New entries show "processed" once the worker handles them.</span>
+                    </li>
+                    <li>
+                        <span class="name">Scheduler</span>
+                        <span class="detail">
+                            @if ($heartbeat)
+                                <span class="state ok">Running</span> &middot; last heartbeat {{ \Illuminate\Support\Carbon::parse($heartbeat)->format('H:i') }} UTC
+                            @else
+                                <span class="state wait">Waiting</span> &middot; the first heartbeat arrives within a minute
+                            @endif
+                        </span>
+                    </li>
+                    <li>
+                        <span class="name">Uploads</span>
+                        <span class="detail">Photos are saved under <code>storage/app/public</code>.</span>
+                    </li>
+                    <li>
+                        <span class="name">Reverb</span>
+                        <span class="detail">
+                            @if ($reverb)
+                                <span class="state wait" id="live">Connecting</span> &middot; entries turn "processed" without a reload
+                            @else
+                                <span class="state">Off</span> &middot; Turn on Reverb in the environment settings and redeploy
+                            @endif
+                        </span>
+                    </li>
+                </ul>
 
-    <h2>Entries</h2>
-    <ul>
-        @forelse ($entries as $entry)
-            <li>
-                <strong>{{ $entry->name }}</strong>
-                <small>{{ $entry->created_at->toDayDateTimeString() }} UTC,
-                    <span data-entry-status="{{ $entry->id }}">{{ $entry->processed_at ? 'processed' : 'waiting for the queue worker' }}</span></small>
-                <p>{{ $entry->message }}</p>
-                @if ($entry->photo_path)
-                    <img src="{{ asset('storage/'.$entry->photo_path) }}" alt="Photo from {{ $entry->name }}">
+                <div class="actions">
+                    <a class="button" href="#guestbook">Sign the guestbook</a>
+                    <a class="button quiet" href="https://spectivis.com">Open Spectivis Cloud</a>
+                </div>
+            </div>
+
+            <div class="panel" aria-hidden="true">
+                <dl class="panel-meta">
+                    <div><dt>Framework</dt><dd>Laravel {{ app()->version() }}</dd></div>
+                    <div><dt>Runtime</dt><dd>PHP {{ PHP_MAJOR_VERSION }}.{{ PHP_MINOR_VERSION }}</dd></div>
+                </dl>
+                <div class="panel-word">Laravel</div>
+            </div>
+        </section>
+
+        <section class="guestbook" id="guestbook">
+            <div>
+                <h2>Sign the guestbook</h2>
+                <p class="sub">Entries are stored in the database and passed to the queue worker.</p>
+                <form class="form" method="post" action="{{ route('entries.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    <label class="field">Name <input name="name" value="{{ old('name') }}" required maxlength="80" autocomplete="name"></label>
+                    <label class="field">Message <textarea name="message" required maxlength="500">{{ old('message') }}</textarea></label>
+                    <label class="field">Photo <small>Optional, up to 2 MB</small><input type="file" name="photo" accept="image/*"></label>
+                    @foreach ($errors->all() as $error)
+                        <p class="error">{{ $error }}</p>
+                    @endforeach
+                    <button class="button" type="submit">Add entry</button>
+                </form>
+            </div>
+
+            <div>
+                <h2>Entries</h2>
+                <p class="sub">Newest first.</p>
+                @if ($entries->isEmpty())
+                    <p class="empty">No entries yet.</p>
+                @else
+                    <ul class="entries">
+                        @foreach ($entries as $entry)
+                            <li>
+                                <div class="who"><strong>{{ $entry->name }}</strong><span class="when">{{ $entry->created_at->format('M j, H:i') }} UTC</span></div>
+                                <p>{{ $entry->message }}</p>
+                                @if ($entry->photo_path)
+                                    <img src="{{ asset('storage/'.$entry->photo_path) }}" alt="Photo from {{ $entry->name }}" loading="lazy">
+                                @endif
+                                <span class="tag" data-entry-status="{{ $entry->id }}">{{ $entry->processed_at ? 'Processed' : 'Waiting for the queue worker' }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
                 @endif
-            </li>
-        @empty
-            <li>No entries yet.</li>
-        @endforelse
-    </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="foot">
+        <span>Laravel {{ app()->version() }} on PHP {{ PHP_MAJOR_VERSION }}.{{ PHP_MINOR_VERSION }}</span>
+        <a href="https://spectivis.com">spectivis.com</a>
+    </footer>
+</div>
 
     @if ($reverb)
         {{-- Reverb speaks the Pusher protocol, so the plain Pusher client is enough for a public channel. --}}
@@ -86,11 +132,12 @@
                 cluster: '',
             });
             pusher.connection.bind('state_change', ({ current }) => {
-                live.textContent = current === 'connected' ? 'connected to Reverb.' : `${current}.`;
+                live.textContent = current === 'connected' ? 'Connected' : `${current[0].toUpperCase()}${current.slice(1)}`;
+                live.className = current === 'connected' ? 'state ok' : 'state wait';
             });
             pusher.subscribe('guestbook').bind('entry.processed', ({ id }) => {
                 const status = document.querySelector(`[data-entry-status="${id}"]`);
-                if (status) status.textContent = 'processed';
+                if (status) status.textContent = 'Processed';
             });
         </script>
     @endif
