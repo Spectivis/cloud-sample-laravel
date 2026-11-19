@@ -29,7 +29,7 @@ class EntryController extends Controller
      */
     private function reverbClient(): ?array
     {
-        $options = config('broadcasting.connections.reverb.options');
+        $options = config('broadcasting.connections.reverb.browser');
 
         if (config('broadcasting.default') !== 'reverb' || blank(config('broadcasting.connections.reverb.key')) || blank($options['host'] ?? null)) {
             return null;

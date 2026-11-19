@@ -98,18 +98,21 @@ class GuestbookTest extends TestCase
         });
     }
 
-    public function test_the_page_connects_to_reverb_only_when_broadcasting_uses_it(): void
+    public function test_the_page_connects_browsers_to_the_public_reverb_address_only_when_broadcasting_uses_it(): void
     {
         $this->get('/')->assertOk()->assertSee('Turn on Reverb')->assertDontSee('pusher-8.4.0.min.js');
 
         config([
             'broadcasting.default' => 'reverb',
             'broadcasting.connections.reverb.key' => 'sample-key',
-            'broadcasting.connections.reverb.options.host' => 'guestbook.spectivis.app',
-            'broadcasting.connections.reverb.options.port' => 443,
-            'broadcasting.connections.reverb.options.scheme' => 'https',
+            'broadcasting.connections.reverb.options.host' => '127.0.0.1',
+            'broadcasting.connections.reverb.options.port' => 8081,
+            'broadcasting.connections.reverb.options.scheme' => 'http',
+            'broadcasting.connections.reverb.browser.host' => 'guestbook.spectivis.app',
+            'broadcasting.connections.reverb.browser.port' => 443,
+            'broadcasting.connections.reverb.browser.scheme' => 'https',
         ]);
 
-        $this->get('/')->assertOk()->assertSee('pusher-8.4.0.min.js')->assertSee('guestbook.spectivis.app')->assertSee('sample-key');
+        $this->get('/')->assertOk()->assertSee('pusher-8.4.0.min.js')->assertSee('guestbook.spectivis.app')->assertSee('sample-key')->assertDontSee('127.0.0.1');
     }
 }

@@ -44,6 +44,13 @@ return [
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
             ],
+            // Where browsers connect. The app itself publishes to the `options` address, which on
+            // Spectivis Cloud is Reverb inside the same instance.
+            'browser' => [
+                'host' => env('VITE_REVERB_HOST', env('REVERB_HOST')),
+                'port' => env('VITE_REVERB_PORT', env('REVERB_PORT', 443)),
+                'scheme' => env('VITE_REVERB_SCHEME', env('REVERB_SCHEME', 'https')),
+            ],
         ],
 
         'pusher' => [

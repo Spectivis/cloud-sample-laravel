@@ -19,7 +19,7 @@ There is no Redis and no Node build step. The page uses a copy of the Pusher cli
 2. Leave the Laravel preset on. It sets the release command to `php artisan migrate --force`, and turns on the queue worker and the scheduler.
 3. Open the app. Add an entry, and within a minute the entry shows as processed and the heartbeat time appears.
 
-To see broadcasting, turn on Reverb in the environment's settings and redeploy. Reverb needs the `pcntl` extension, so `composer.json` requires `ext-pcntl`; Railpack installs extensions from those entries. Cloud sets `BROADCAST_CONNECTION=reverb` and the `REVERB_*` variables, runs Reverb as a third process and sends `/app/*` and `/apps/*` to it. An open page keeps the environment awake.
+To see broadcasting, turn on Reverb in the environment's settings and redeploy. Reverb needs the `pcntl` extension, so `composer.json` requires `ext-pcntl`; Railpack installs extensions from those entries. Cloud sets `BROADCAST_CONNECTION=reverb`, the `REVERB_*` variables that point the app at Reverb inside its own instance and the `VITE_REVERB_*` variables browsers use, runs Reverb as a third process and sends `/app/*` and `/apps/*` to it. An open page keeps the environment awake.
 
 While an environment is asleep, queue jobs and scheduled tasks pause. Entries wait and the heartbeat stops until the next visit wakes it. Turn off "Sleep when idle" to keep them running.
 
