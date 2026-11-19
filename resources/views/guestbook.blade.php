@@ -33,6 +33,13 @@
             @endif
         </li>
         <li>Uploads: attach a photo to an entry. It is saved under <code>storage/app/public</code>.</li>
+        <li>Broadcasting:
+            @if ($reverb)
+                <span id="live">connecting to Reverb.</span> New entries turn "processed" on this page without a reload.
+            @else
+                off. Turn on Reverb in the environment's settings and redeploy to see entries turn "processed" without a reload.
+            @endif
+        </li>
     </ul>
 
     <h2>Sign the guestbook</h2>
@@ -53,7 +60,7 @@
             <li>
                 <strong>{{ $entry->name }}</strong>
                 <small>{{ $entry->created_at->toDayDateTimeString() }} UTC,
-                    {{ $entry->processed_at ? 'processed' : 'waiting for the queue worker' }}</small>
+                    <span data-entry-status="{{ $entry->id }}">{{ $entry->processed_at ? 'processed' : 'waiting for the queue worker' }}</span></small>
                 <p>{{ $entry->message }}</p>
                 @if ($entry->photo_path)
                     <img src="{{ asset('storage/'.$entry->photo_path) }}" alt="Photo from {{ $entry->name }}">
@@ -63,5 +70,29 @@
             <li>No entries yet.</li>
         @endforelse
     </ul>
+
+    @if ($reverb)
+        {{-- Reverb speaks the Pusher protocol, so the plain Pusher client is enough for a public channel. --}}
+        <script src="{{ asset('vendor/pusher-8.4.0.min.js') }}"></script>
+        <script>
+            const reverb = @json($reverb);
+            const live = document.getElementById('live');
+            const pusher = new Pusher(reverb.key, {
+                wsHost: reverb.host,
+                wsPort: reverb.port,
+                wssPort: reverb.port,
+                forceTLS: reverb.scheme === 'https',
+                enabledTransports: ['ws', 'wss'],
+                cluster: '',
+            });
+            pusher.connection.bind('state_change', ({ current }) => {
+                live.textContent = current === 'connected' ? 'connected to Reverb.' : `${current}.`;
+            });
+            pusher.subscribe('guestbook').bind('entry.processed', ({ id }) => {
+                const status = document.querySelector(`[data-entry-status="${id}"]`);
+                if (status) status.textContent = 'processed';
+            });
+        </script>
+    @endif
 </body>
 </html>
